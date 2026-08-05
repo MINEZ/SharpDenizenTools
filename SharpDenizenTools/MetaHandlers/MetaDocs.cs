@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FreneticUtilities.FreneticExtensions;
@@ -249,5 +249,8 @@ namespace SharpDenizenTools.MetaHandlers
 
         /// <summary>A list of load-time errors, if any.</summary>
         public List<string> LoadErrors = [];
+
+        /// <summary>Whether any source failed to download. When true, this docs set is incomplete and should not replace a previously loaded one.</summary>
+        public bool SourceLoadFailed = false;
     }
 }

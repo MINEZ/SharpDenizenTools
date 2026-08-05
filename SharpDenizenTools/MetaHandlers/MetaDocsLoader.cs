@@ -1,4 +1,4 @@
-﻿using FreneticUtilities.FreneticExtensions;
+using FreneticUtilities.FreneticExtensions;
 using FreneticUtilities.FreneticToolkit;
 using SharpDenizenTools.MetaObjects;
 using System;
@@ -94,6 +94,7 @@ namespace SharpDenizenTools.MetaHandlers
                     {
                         Console.Error.WriteLine($"Source download exception {ex}");
                         docs.LoadErrors.Add($"Source download error: {ex.GetType().Name}: {ex.Message}");
+                        docs.SourceLoadFailed = true;
                     }
                     evt.Set();
                 });
