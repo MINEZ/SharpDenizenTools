@@ -16,7 +16,7 @@ namespace SharpDenizenTools.MetaHandlers
     public class ExtraData
     {
         /// <summary>Source link for the extra-data FDS document.</summary>
-        public static string EXTRA_DATA_SOURCE = "https://meta.denizenscript.com/data/minecraft.fds";
+        public static string EXTRA_DATA_SOURCE = "https://denizen-meta.minez.cc/data/minecraft.fds";
 
         /// <summary>The current extra data object (if loaded).</summary>
         public static ExtraData Data;
