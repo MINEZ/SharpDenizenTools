@@ -20,15 +20,14 @@ namespace SharpDenizenTools.MetaHandlers
         /// <summary>Primary Denizen official sources.</summary>
         public static readonly string[] DENIZEN_SOURCES =
         [
-            "https://github.com/DenizenScript/Denizen/archive/dev.zip",
-            "https://github.com/DenizenScript/Denizen-Core/archive/master.zip"
+            "https://github.com/MINEZ/Denizen/archive/dev.zip",
+            "https://github.com/MINEZ/DenizenCore/archive/master.zip"
         ];
 
         /// <summary>Denizen secondary addon sources.</summary>
         public static readonly string[] DENIZEN_ADDON_SOURCES =
         [
-            "https://github.com/DenizenScript/Depenizen/archive/master.zip",
-            "https://github.com/DenizenScript/dDiscordBot/archive/master.zip"
+            "https://github.com/MINEZ/Depenizen/archive/master.zip"
         ];
 
         /// <summary>The actual source array to use, by default built from <see cref="DENIZEN_SOURCES"/> and <see cref="DENIZEN_ADDON_SOURCES"/>.</summary>
