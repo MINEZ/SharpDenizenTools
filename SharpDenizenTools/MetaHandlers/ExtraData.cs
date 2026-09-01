@@ -230,7 +230,8 @@ namespace SharpDenizenTools.MetaHandlers
             // This should maybe be in the data file.
             "chest", "dispenser", "dropper", "furnace", "workbench", "crafting", "enchanting", "brewing", "player",
             "creative", "merchant", "ender_chest", "anvil", "smithing", "beacon", "hopper", "shulker_box", "barrel", "blast_furnace",
-            "lectern", "smoker", "loom", "cartography", "grindstone", "stonecutter", "composter"
+            "lectern", "smoker", "loom", "cartography", "grindstone", "stonecutter", "composter",
+            "chiseled_bookshelf", "crafter", "decorated_pot", "jukebox"
         ];
 
         /// <summary>Type matcher for InventoryTag.</summary>
