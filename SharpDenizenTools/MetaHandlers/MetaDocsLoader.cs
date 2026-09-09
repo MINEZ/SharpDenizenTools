@@ -27,7 +27,8 @@ namespace SharpDenizenTools.MetaHandlers
         /// <summary>Denizen secondary addon sources.</summary>
         public static readonly string[] DENIZEN_ADDON_SOURCES =
         [
-            "https://github.com/MINEZ/Depenizen/archive/master.zip"
+            "https://github.com/MINEZ/Depenizen/archive/master.zip",
+            "https://github.com/Xiao-MoMi/craft-engine/archive/main.zip"
         ];
 
         /// <summary>The actual source array to use, by default built from <see cref="DENIZEN_SOURCES"/> and <see cref="DENIZEN_ADDON_SOURCES"/>.</summary>
