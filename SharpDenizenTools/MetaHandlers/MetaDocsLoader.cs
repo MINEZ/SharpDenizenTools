@@ -176,6 +176,15 @@ namespace SharpDenizenTools.MetaHandlers
                 }
             }
             docs.RawAdjustables = [.. docs.ObjectTypes.Values.Where(t => t.GeneratedExampleAdjust == t.Name && !t.CleanName.EndsWith("tag")).Select(t => t.Name)];
+            docs.AllSwitchNames.Clear();
+            if (docs.DataValueSets.TryGetValue("global_switches", out HashSet<string> globalSwitches))
+            {
+                docs.AllSwitchNames.UnionWith(globalSwitches);
+            }
+            foreach (MetaEvent evt in docs.Events.Values)
+            {
+                docs.AllSwitchNames.UnionWith(evt.SwitchNames);
+            }
         }
 
         /// <summary>Downloads guide source info.</summary>

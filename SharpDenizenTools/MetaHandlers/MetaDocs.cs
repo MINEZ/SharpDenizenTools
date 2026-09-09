@@ -99,6 +99,9 @@ namespace SharpDenizenTools.MetaHandlers
         /// <summary>Set of raw adjustable keys.</summary>
         public HashSet<string> RawAdjustables = [];
 
+        /// <summary>Every switch name that any known event accepts, plus the global switches.</summary>
+        public HashSet<string> AllSwitchNames = [];
+
         /// <summary>Creates a new instance of <see cref="MetaDocs"/> and registers its <see cref="MetaTypeData{T}"/>.</summary>
         public MetaDocs()
         {
@@ -134,6 +137,12 @@ namespace SharpDenizenTools.MetaHandlers
         public bool IsInDataValueSet(string set, string text)
         {
             return DataValueSets.TryGetValue(set, out HashSet<string> values) && values.Contains(text);
+        }
+
+        /// <summary>Returns whether the given text is a switch name that any known event accepts.</summary>
+        public bool IsKnownSwitchName(string text)
+        {
+            return AllSwitchNames.Contains(text);
         }
 
         /// <summary>Associated ExtraData instance, if any.</summary>

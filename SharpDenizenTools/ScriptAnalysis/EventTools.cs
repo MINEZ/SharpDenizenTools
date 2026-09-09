@@ -19,15 +19,17 @@ namespace SharpDenizenTools.ScriptAnalysis
         /// <param name="meta">The relevant meta docs.</param>
         /// <param name="eventLine">The original full event line.</param>
         /// <param name="switches">The output switch list.</param>
+        /// <param name="isSwitchName">Optional filter for which names may be read as a switch. Null to accept any name.</param>
         /// <returns>The cleaned event line.</returns>
-        public static string SeparateSwitches(MetaDocs meta, string eventLine, out List<KeyValuePair<string, string>> switches)
+        public static string SeparateSwitches(MetaDocs meta, string eventLine, out List<KeyValuePair<string, string>> switches, Func<string, bool> isSwitchName = null)
         {
             string[] parts = eventLine.SplitFast(' ');
             StringBuilder output = new();
             switches = [];
             foreach (string part in parts)
             {
-                if (part.Contains(':') && !meta.IsInDataValueSet("not_switches", part.Before(':')) && !NumbersMatcher.IsOnlyMatches(part.Before(':')))
+                if (part.Contains(':') && !meta.IsInDataValueSet("not_switches", part.Before(':')) && !NumbersMatcher.IsOnlyMatches(part.Before(':'))
+                    && (isSwitchName is null || isSwitchName(part.Before(':').ToLowerFast())))
                 {
                     string switchName = part.BeforeAndAfter(':', out string switchVal);
                     switches.Add(new KeyValuePair<string, string>(switchName.ToLowerFast(), switchVal));

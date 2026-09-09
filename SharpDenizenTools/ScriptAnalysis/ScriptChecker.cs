@@ -1214,106 +1214,18 @@ namespace SharpDenizenTools.ScriptAnalysis
                                         Warn(Warnings, eventValue.Line, "event_object_notation", "This event line appears to contain raw object notation. Object notation is not allowed in event lines.", start, end);
                                     }
                                 }
-                                eventName = EventTools.SeparateSwitches(Meta, eventName, out List<KeyValuePair<string, string>> switches);
-                                string[] parts = eventName.SplitFast(' ');
-                                MetaEvent matchedEvent = null;
-                                ScriptEventCouldMatcher matched = null;
-                                bool matchedSwitches = false;
-                                foreach (MetaEvent evt in Meta.Events.Values)
+                                List<(string, string)> eventWarnings = CheckEventLine(eventName, null);
+                                if (eventWarnings.Count > 0)
                                 {
-                                    foreach (ScriptEventCouldMatcher matcher in evt.CouldMatchers)
+                                    List<(string, string)> altWarnings = CheckEventLine(eventName, Meta.IsKnownSwitchName);
+                                    if (altWarnings.Count == 0)
                                     {
-                                        if (matcher.TryMatch(parts, false, false) > 0)
-                                        {
-                                            if (matched == null || matcher.IsBetterMatchThan(parts, false, matched))
-                                            {
-                                                if (AllSwitchesValid(evt, switches))
-                                                {
-                                                    matched = matcher;
-                                                    matchedEvent = evt;
-                                                    matchedSwitches = true;
-                                                }
-                                                else if (!matchedSwitches)
-                                                {
-                                                    matched = matcher;
-                                                    matchedEvent = evt;
-                                                }
-                                            }
-                                            else if (!matchedSwitches && AllSwitchesValid(evt, switches))
-                                            {
-                                                matched = matcher;
-                                                matchedEvent = evt;
-                                                matchedSwitches = true;
-                                            }
-                                        }
+                                        eventWarnings = altWarnings;
                                     }
                                 }
-                                if (matchedEvent is null)
+                                foreach ((string warnKey, string warnText) in eventWarnings)
                                 {
-                                    foreach (MetaEvent evt in Meta.Events.Values)
-                                    {
-                                        if (evt.CouldMatchers.Any(c => c.TryMatch(parts, true, false) > 0))
-                                        {
-                                            matchedEvent = evt;
-                                            break;
-                                        }
-                                    }
-                                    if (matchedEvent is null)
-                                    {
-                                        warnScript(Warnings, eventValue.Line, "event_missing", $"Script Event listed doesn't exist. (Check `!event ...` to find proper event lines)!");
-                                    }
-                                    else
-                                    {
-                                        warnScript(Warnings, eventValue.Line, "event_missing", $"Script Event listed doesn't exist. Got partial match for '{matchedEvent.Name}' - might be incomplete? Check documentation.");
-                                    }
-                                }
-                                else
-                                {
-                                    foreach (KeyValuePair<string, string> switchPair in switches)
-                                    {
-                                        if (switchPair.Key == "cancelled" || switchPair.Key == "ignorecancelled")
-                                        {
-                                            if (switchPair.Value.ToLowerFast() != "true" && switchPair.Value.ToLowerFast() != "false")
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "bad_switch_value", $"'{switchPair.Key}' switch invalid: must be 'true' or 'false'.");
-                                            }
-                                        }
-                                        else if (switchPair.Key == "priority" || switchPair.Key == "chance")
-                                        {
-                                            if (!double.TryParse(switchPair.Value, out _))
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "bad_switch_value", $"'{switchPair.Key}' switch invalid: must be a decimal number.");
-                                            }
-                                        }
-                                        else if (switchPair.Key == "in" || switchPair.Key == "location_flagged")
-                                        {
-                                            if (!matchedEvent.HasLocation)
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a known location.");
-                                            }
-                                        }
-                                        else if (switchPair.Key == "flagged" || switchPair.Key == "permission")
-                                        {
-                                            if (string.IsNullOrWhiteSpace(matchedEvent.Player))
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a linked player.");
-                                            }
-                                        }
-                                        else if (switchPair.Key == "assigned")
-                                        {
-                                            if (string.IsNullOrWhiteSpace(matchedEvent.NPC))
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a linked NPC.");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (!matchedEvent.IsValidSwitch(switchPair.Key))
-                                            {
-                                                warnScript(Warnings, eventValue.Line, "unknown_switch", $"Switch given is unrecognized.");
-                                            }
-                                        }
-                                    }
+                                    warnScript(Warnings, eventValue.Line, warnKey, warnText);
                                 }
                             }
                         }
@@ -1330,6 +1242,117 @@ namespace SharpDenizenTools.ScriptAnalysis
         private static bool AllSwitchesValid(MetaEvent evt, List<KeyValuePair<string, string>> switches)
         {
             return switches.All(pair => evt.IsValidSwitch(pair.Key));
+        }
+
+        /// <summary>Checks a single event line under one reading of which words are switches, and returns the warnings it would produce.</summary>
+        /// <param name="eventName">The event line, with any 'on' / 'after' prefix already removed.</param>
+        /// <param name="isSwitchName">Optional filter for which names may be read as a switch. Null to accept any name.</param>
+        /// <returns>A list of warning key and warning text pairs.</returns>
+        public List<(string, string)> CheckEventLine(string eventName, Func<string, bool> isSwitchName)
+        {
+            List<(string, string)> warnings = [];
+            eventName = EventTools.SeparateSwitches(Meta, eventName, out List<KeyValuePair<string, string>> switches, isSwitchName);
+            string[] parts = eventName.SplitFast(' ');
+            MetaEvent matchedEvent = null;
+            ScriptEventCouldMatcher matched = null;
+            bool matchedSwitches = false;
+            foreach (MetaEvent evt in Meta.Events.Values)
+            {
+                foreach (ScriptEventCouldMatcher matcher in evt.CouldMatchers)
+                {
+                    if (matcher.TryMatch(parts, false, false) > 0)
+                    {
+                        if (matched == null || matcher.IsBetterMatchThan(parts, false, matched))
+                        {
+                            if (AllSwitchesValid(evt, switches))
+                            {
+                                matched = matcher;
+                                matchedEvent = evt;
+                                matchedSwitches = true;
+                            }
+                            else if (!matchedSwitches)
+                            {
+                                matched = matcher;
+                                matchedEvent = evt;
+                            }
+                        }
+                        else if (!matchedSwitches && AllSwitchesValid(evt, switches))
+                        {
+                            matched = matcher;
+                            matchedEvent = evt;
+                            matchedSwitches = true;
+                        }
+                    }
+                }
+            }
+            if (matchedEvent is null)
+            {
+                foreach (MetaEvent evt in Meta.Events.Values)
+                {
+                    if (evt.CouldMatchers.Any(c => c.TryMatch(parts, true, false) > 0))
+                    {
+                        matchedEvent = evt;
+                        break;
+                    }
+                }
+                if (matchedEvent is null)
+                {
+                    warnings.Add(("event_missing", $"Script Event listed doesn't exist. (Check `!event ...` to find proper event lines)!"));
+                }
+                else
+                {
+                    warnings.Add(("event_missing", $"Script Event listed doesn't exist. Got partial match for '{matchedEvent.Name}' - might be incomplete? Check documentation."));
+                }
+            }
+            else
+            {
+                foreach (KeyValuePair<string, string> switchPair in switches)
+                {
+                    if (switchPair.Key == "cancelled" || switchPair.Key == "ignorecancelled")
+                    {
+                        if (switchPair.Value.ToLowerFast() != "true" && switchPair.Value.ToLowerFast() != "false")
+                        {
+                            warnings.Add(("bad_switch_value", $"'{switchPair.Key}' switch invalid: must be 'true' or 'false'."));
+                        }
+                    }
+                    else if (switchPair.Key == "priority" || switchPair.Key == "chance")
+                    {
+                        if (!double.TryParse(switchPair.Value, out _))
+                        {
+                            warnings.Add(("bad_switch_value", $"'{switchPair.Key}' switch invalid: must be a decimal number."));
+                        }
+                    }
+                    else if (switchPair.Key == "in" || switchPair.Key == "location_flagged")
+                    {
+                        if (!matchedEvent.HasLocation)
+                        {
+                            warnings.Add(("unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a known location."));
+                        }
+                    }
+                    else if (switchPair.Key == "flagged" || switchPair.Key == "permission")
+                    {
+                        if (string.IsNullOrWhiteSpace(matchedEvent.Player))
+                        {
+                            warnings.Add(("unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a linked player."));
+                        }
+                    }
+                    else if (switchPair.Key == "assigned")
+                    {
+                        if (string.IsNullOrWhiteSpace(matchedEvent.NPC))
+                        {
+                            warnings.Add(("unknown_switch", $"'{switchPair.Key}' switch is only supported on events that have a linked NPC."));
+                        }
+                    }
+                    else
+                    {
+                        if (!matchedEvent.IsValidSwitch(switchPair.Key))
+                        {
+                            warnings.Add(("unknown_switch", $"Switch given is unrecognized."));
+                        }
+                    }
+                }
+            }
+            return warnings;
         }
 
         /// <summary>Matcher for A-Z only.</summary>
