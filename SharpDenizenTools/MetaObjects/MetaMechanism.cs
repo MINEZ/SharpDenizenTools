@@ -60,6 +60,13 @@ namespace SharpDenizenTools.MetaObjects
                 case "name":
                     MechName = value;
                     return true;
+                case "mechanism":
+                    if (!value.Contains('.'))
+                    {
+                        return false;
+                    }
+                    MechObject = value.BeforeAndAfter('.', out MechName);
+                    return true;
                 case "input":
                     Input = value;
                     return true;
